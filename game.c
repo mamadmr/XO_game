@@ -7,7 +7,14 @@ struct Cell{
     int status; // {0: empty, 1: X, 2: O}
 };
 
-struct Cell game_map[MX][MX];
+struct User{
+    int score;
+    struct Cell (*f)(struct Cell[MX][MX]);
+};
+
+struct Map{
+    struct Cell map[MX][MX];
+};
 
 
 void print_map(struct Cell inp[MX][MX]){
@@ -22,7 +29,15 @@ void print_map(struct Cell inp[MX][MX]){
     }
 }
 
+struct Cell test(struct Cell inp[MX][MX]){
+    return inp[0][0];
+}
 
-int main(){
+struct Map game_map;
+
+int main(){       
+    struct User user1;
+    user1.f = &test;    
+    printf("%d", user1.f(game_map.map).x);
     return 0;
 }
