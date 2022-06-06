@@ -1,6 +1,15 @@
 #include<stdio.h>
+#include<string.h>
+#include<stdbool.h>
 
 #define MX 6
+#define MX_user 10
+#define MX_maps 10
+
+int map_count;
+int user_count;
+int score_board[MX_user][MX_user];
+bool finish_map[MX_maps];
 
 struct Cell{
     int x,y;
@@ -9,13 +18,13 @@ struct Cell{
 
 struct User{
     char username[30];
-    int score;
     struct Cell (*f)(struct Cell[MX][MX]);
-};
+}users[MX_user];
 
 struct Map{
     struct Cell map[MX][MX];
-};
+}maps[MX_maps];
+
 
 void print_map(struct Cell inp[MX][MX]){
     for(int i = 0; i<MX; i++){
@@ -29,6 +38,35 @@ void print_map(struct Cell inp[MX][MX]){
     }
 }
 
+void AddUser(){
+    printf("-----------------------------------------\n");
+    printf("Enter the username: ");
+    scanf("%s", users[user_count].username);
+    user_count ++;
+}
+
+int choose_player(){
+    while(1){
+        printf("-----------------------------------------\n");
+        printf("0. make user\n");
+        for(int i = 1; i<user_count; i++){
+            printf("%d. %s\n", i, users[i].username);
+        }
+        printf("Enter your choice: ");
+        int choice;
+        scanf("%d", &choice);
+        if(choice == 0) AddUser();
+        if(choice < user_count && choice > 0) return choice;
+        printf("\n\n**********Enter a valid choice************\n\n");
+    }
+}
+
+void OnePlayer(){
+    int user2 = 0;
+    int user2 = choose_player();
+    map_count++;
+}
+
 void NewPlayMenu(){
     while (1)
     {
@@ -39,6 +77,7 @@ void NewPlayMenu(){
         printf("Enter your choice: ");
         int choice;
         scanf("%d", &choice);
+        if(choice == 1) OnePlayer();
         if(choice == 3) return;
     }
     
@@ -61,14 +100,19 @@ void MainMenu(){
     
 }
 
-
-struct Cell test(struct Cell inp[MX][MX]){
-    return inp[0][0];
+void init(){
+    strcpy(users[0].username, "Computer");
+    user_count = 1;    
 }
 
-struct Map game_map;
+// struct Cell test(struct Cell inp[MX][MX]){
+//     return inp[0][0];
+// }
 
-int main(){       
+// struct Map game_map;
+
+int main(){    
+    init();   
     MainMenu();
     // struct User user1;
     // user1.f = &test;    
