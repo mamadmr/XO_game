@@ -29,6 +29,34 @@ void print_map(struct Cell inp[MX][MX]){
     }
 }
 
+void NewPlayMenu(){
+    while (1)
+    {
+        printf("1. one player\n");
+        printf("2. two players\n");
+        printf("3. back");
+        int choice;
+        scanf("%d", &choice);
+    }
+    
+}
+
+void MainMenu(){
+    while(1)
+    {
+        printf("1. new game\n");
+        printf("2. last games\n");
+        printf("3. exit");
+        int choice;
+        scanf("%d", &choice);
+        if(choice == 1) NewPlayMenu();
+        if(choice == 3) break;
+        
+    }
+    
+}
+
+
 struct Cell test(struct Cell inp[MX][MX]){
     return inp[0][0];
 }
