@@ -5,6 +5,7 @@
 #define MX 6
 #define MX_user 10
 #define MX_maps 10
+#define MX_name 20
 
 int map_count;
 int user_count;
@@ -17,7 +18,7 @@ struct Cell{
 };
 
 struct User{
-    char username[30];
+    char username[MX_name];
     struct Cell (*f)(struct Cell[MX][MX]);
 }users[MX_user];
 
@@ -25,6 +26,30 @@ struct Map{
     struct Cell map[MX][MX];
 }maps[MX_maps];
 
+void print_map(struct Cell inp[MX][MX]);
+
+
+void StartGame(int user1, int user2, int game_map){
+    printf("is playing ...\n");
+}
+
+struct Cell ComputerPlayer(struct Cell inp[MX][MX]){
+    for(int i = 0; i<MX; i++)
+        for(int j = 0; j<MX; j++)
+            if(inp[i][j].status == 0) return inp[i][j];
+}
+
+struct Cell PlayerChoose(struct Cell inp[MX][MX]){
+    while(1){
+        print_map(inp);
+        int x, y;
+        printf("Enter x: ");
+        scanf("%d", &x);
+        printf("Enter x: ");
+        scanf("%d", &x);
+        if(x >= 0 && x<MX && y>=0 && y<MX) return inp[x][y];
+    }
+}
 
 void print_map(struct Cell inp[MX][MX]){
     for(int i = 0; i<MX; i++){
@@ -40,8 +65,9 @@ void print_map(struct Cell inp[MX][MX]){
 
 void AddUser(){
     printf("-----------------------------------------\n");
-    printf("Enter the username: ");
+    printf("Enter the username(shouldn't contain space): ");
     scanf("%s", users[user_count].username);
+    users[user_count].f = &PlayerChoose;
     user_count ++;
 }
 
@@ -56,14 +82,29 @@ int choose_player(){
         int choice;
         scanf("%d", &choice);
         if(choice == 0) AddUser();
-        if(choice < user_count && choice > 0) return choice;
-        printf("\n\n**********Enter a valid choice************\n\n");
+        else if(choice < user_count && choice > 0) return choice;
+        else printf("\n\n**********Enter a valid choice************\n\n");
     }
 }
 
 void OnePlayer(){
-    int user2 = 0;
+    int user1 = 0;
     int user2 = choose_player();
+    StartGame(user1, user2, map_count);
+    map_count++;
+}
+
+void TwoPlayer(){
+    int user1 = 0, user2 = 0;
+    while(1){
+        printf("Choose first player\n");
+        user1 = choose_player();
+        printf("Choose second player\n");
+        user2 = choose_player();
+        if(user1 != user2) break;
+        printf("choose different player\n");
+    }
+    StartGame(user1, user2, map_count);
     map_count++;
 }
 
@@ -78,6 +119,7 @@ void NewPlayMenu(){
         int choice;
         scanf("%d", &choice);
         if(choice == 1) OnePlayer();
+        if(choice == 2) TwoPlayer();
         if(choice == 3) return;
     }
     
@@ -102,20 +144,13 @@ void MainMenu(){
 
 void init(){
     strcpy(users[0].username, "Computer");
+    users[0].f = &ComputerPlayer;
     user_count = 1;    
 }
 
-// struct Cell test(struct Cell inp[MX][MX]){
-//     return inp[0][0];
-// }
-
-// struct Map game_map;
 
 int main(){    
     init();   
     MainMenu();
-    // struct User user1;
-    // user1.f = &test;    
-    // printf("%d", user1.f(game_map.map).x);
     return 0;
 }
