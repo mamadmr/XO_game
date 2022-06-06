@@ -8,6 +8,7 @@ struct Cell{
 };
 
 struct User{
+    char username[30];
     int score;
     struct Cell (*f)(struct Cell[MX][MX]);
 };
@@ -15,7 +16,6 @@ struct User{
 struct Map{
     struct Cell map[MX][MX];
 };
-
 
 void print_map(struct Cell inp[MX][MX]){
     for(int i = 0; i<MX; i++){
@@ -32,11 +32,14 @@ void print_map(struct Cell inp[MX][MX]){
 void NewPlayMenu(){
     while (1)
     {
+        printf("-----------------------------------------\n");
         printf("1. one player\n");
         printf("2. two players\n");
-        printf("3. back");
+        printf("3. back\n");
+        printf("Enter your choice: ");
         int choice;
         scanf("%d", &choice);
+        if(choice == 3) return;
     }
     
 }
@@ -44,9 +47,11 @@ void NewPlayMenu(){
 void MainMenu(){
     while(1)
     {
+        printf("-----------------------------------------\n");
         printf("1. new game\n");
         printf("2. last games\n");
-        printf("3. exit");
+        printf("3. exit\n");
+        printf("Enter your choice: ");
         int choice;
         scanf("%d", &choice);
         if(choice == 1) NewPlayMenu();
@@ -64,8 +69,9 @@ struct Cell test(struct Cell inp[MX][MX]){
 struct Map game_map;
 
 int main(){       
-    struct User user1;
-    user1.f = &test;    
-    printf("%d", user1.f(game_map.map).x);
+    MainMenu();
+    // struct User user1;
+    // user1.f = &test;    
+    // printf("%d", user1.f(game_map.map).x);
     return 0;
 }
