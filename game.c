@@ -1,68 +1,95 @@
 #include<stdio.h>
 #include<string.h>
-#include<stdbool.h>
 
-#define MX 6
-#define MX_user 10
-#define MX_maps 10
-#define MX_name 20
+#define map_size 6 // size of the map is map_size*map_size
+#define MX_user 10 // maximum number of users
+#define MX_maps 10 // maximum number of maps
+#define MX_name 20 // maximum lengh of username
 
-int map_count;
-int user_count;
-int score_board[MX_user][MX_user];
-bool finish_map[MX_maps];
+int map_count;                          // number of maps exist
+int user_count;                         // number of users exist
+int score_board[MX_user][MX_user][2];   // each user has row and colum 
 
+// each map made of map_size*map_size Cells
 struct Cell{
     int x,y;
     int status; // {0: empty, 1: X, 2: O}
 };
 
-struct User{
-    char username[MX_name];
-    struct Cell (*f)(struct Cell[MX][MX]);
-}users[MX_user];
-
+// map is just a 2D array of Cells
 struct Map{
-    struct Cell map[MX][MX];
+    struct Cell map[map_size][map_size];
+    int user1, user2;
+    int status; // {0: not finished yet, 1: finished}
 }maps[MX_maps];
 
-void print_map(struct Cell inp[MX][MX]);
+// there are different users in the game, they can play with each other
+struct User{
+    char username[MX_name];
+    struct Cell (*f)(struct Map);
+}users[MX_user];
 
+void StartGame(int game_map);                       // the Main game happens here after users pass the menus
+void print_map(struct Map inp);                                      
+struct Cell ComputerPlayer(struct Map inp);         // computer choose a Cell to continue the game 
+struct Cell PlayerChoose(struct Map inp);           // ask user to choose a Cell to conitnue the game
+void AddUser();                                     // ask and add a new user to users
+int ChoosePlayer();
+void OnePlayer();
+void TwoPlayer();
+void NewPlayMenu();
+void MainMenu();
+void init();
 
-void StartGame(int user1, int user2, int game_map){
+int main(){    
+    init();   
+    MainMenu();
+    return 0;
+}
+
+// The main game happes here : 
+void StartGame(int game_map){
+    printf("-----------------------------------------\n");
     printf("is playing ...\n");
 }
 
-struct Cell ComputerPlayer(struct Cell inp[MX][MX]){
-    for(int i = 0; i<MX; i++)
-        for(int j = 0; j<MX; j++)
-            if(inp[i][j].status == 0) return inp[i][j];
+
+// users functions:
+//      first:
+struct Cell ComputerPlayer(struct Map inp){
+    for(int i = 0; i<map_size; i++)
+        for(int j = 0; j<map_size; j++)
+            if(inp.map[i][j].status == 0) return inp.map[i][j];
 }
 
-struct Cell PlayerChoose(struct Cell inp[MX][MX]){
+//      second:
+struct Cell PlayerChoose(struct Map inp){
     while(1){
         print_map(inp);
         int x, y;
         printf("Enter x: ");
         scanf("%d", &x);
-        printf("Enter x: ");
-        scanf("%d", &x);
-        if(x >= 0 && x<MX && y>=0 && y<MX) return inp[x][y];
+        printf("Enter y: ");
+        scanf("%d", &y);
+        if(x >= 0 && x<map_size && y>=0 && y<map_size) return inp.map[x][y];
+        printf("Enter a valid coordinate\n");
     }
 }
 
-void print_map(struct Cell inp[MX][MX]){
-    for(int i = 0; i<MX; i++){
-        for(int j = 0; j<MX; j++){
-            if(inp[i][j].status == 0) printf("_");
-            else if(inp[i][j].status == 1) printf("X");
-            else if(inp[i][j].status == 2) printf("O");
+// just print map:
+void print_map(struct Map inp){
+    for(int i = 0; i<map_size; i++){
+        for(int j = 0; j<map_size; j++){
+            if(inp.map[i][j].status == 0) printf("_");
+            else if(inp.map[i][j].status == 1) printf("X");
+            else if(inp.map[i][j].status == 2) printf("O");
             printf(" ");
         }
         printf("\n");
     }
 }
 
+// if user wants to add a new player to the game this function will run
 void AddUser(){
     printf("-----------------------------------------\n");
     printf("Enter the username(shouldn't contain space): ");
@@ -71,7 +98,8 @@ void AddUser(){
     user_count ++;
 }
 
-int choose_player(){
+// this function will start working when user choose player for a new game
+int ChoosePlayer(){
     while(1){
         printf("-----------------------------------------\n");
         printf("0. make user\n");
@@ -87,27 +115,38 @@ int choose_player(){
     }
 }
 
+
+// choose the only player for playing against 
 void OnePlayer(){
+    printf("-----------------------------------------\n");
     int user1 = 0;
-    int user2 = choose_player();
-    StartGame(user1, user2, map_count);
+    int user2 = ChoosePlayer();
+    maps[map_count].user1 = user1;
+    maps[map_count].user2 = user2;
+    StartGame(map_count);
     map_count++;
 }
 
+
+// choose two players to play against each other 
 void TwoPlayer(){
     int user1 = 0, user2 = 0;
     while(1){
+        printf("-----------------------------------------\n");
         printf("Choose first player\n");
-        user1 = choose_player();
+        user1 = ChoosePlayer();
         printf("Choose second player\n");
-        user2 = choose_player();
+        user2 = ChoosePlayer();
         if(user1 != user2) break;
         printf("choose different player\n");
     }
-    StartGame(user1, user2, map_count);
+    maps[map_count].user1 = user1;
+    maps[map_count].user2 = user2;
+    StartGame(map_count);
     map_count++;
 }
 
+// choose the mod of the new game
 void NewPlayMenu(){
     while (1)
     {
@@ -121,8 +160,7 @@ void NewPlayMenu(){
         if(choice == 1) OnePlayer();
         if(choice == 2) TwoPlayer();
         if(choice == 3) return;
-    }
-    
+    }    
 }
 
 void MainMenu(){
@@ -137,20 +175,11 @@ void MainMenu(){
         scanf("%d", &choice);
         if(choice == 1) NewPlayMenu();
         if(choice == 3) break;
-        
     }
-    
 }
 
 void init(){
     strcpy(users[0].username, "Computer");
     users[0].f = &ComputerPlayer;
     user_count = 1;    
-}
-
-
-int main(){    
-    init();   
-    MainMenu();
-    return 0;
 }
