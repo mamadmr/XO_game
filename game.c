@@ -8,7 +8,7 @@
 
 int map_count;                          // number of maps exist
 int user_count;                         // number of users exist
-int score_board[MX_user][MX_user][2];   // each user has row and colum 
+int score_board[MX_user][MX_user];   // each user has row and colum 
 
 // each map made of map_size*map_size Cells
 struct Cell{
@@ -30,6 +30,9 @@ struct User{
 }users[MX_user];
 
 void StartGame(int game_map);                       // the Main game happens here after users pass the menus
+int check(int game_map);
+int check_cell(int game_map, int x, int y, int status);
+int check_full(int game_map);
 void print_map(struct Map inp);                                      
 struct Cell ComputerPlayer(struct Map inp);         // computer choose a Cell to continue the game 
 struct Cell PlayerChoose(struct Map inp);           // ask user to choose a Cell to conitnue the game
@@ -47,12 +50,104 @@ int main(){
     return 0;
 }
 
-// The main game happes here : 
-void StartGame(int game_map){
-    printf("-----------------------------------------\n");
-    printf("is playing ...\n");
+int check_cell(int game_map, int x, int y, int status){
+    if(x <= 0 || x >= map_size) return 0;
+    if(y <= 0 || y >= map_size) return 0;
+    if(status == 0) return 0;
+    if(maps[game_map].map[x][y].status == status) return 1;
+    return 0;
 }
 
+int check(int game_map){
+    for(int i = 0; i<map_size; i++){
+        for(int j = 0; j<map_size; j++){
+            int status = maps[game_map].map[i][j].status;
+            if(status == 0) continue;
+            if(check_cell(game_map, i, j+1, status) && check_cell(game_map, i, j+2, status)) return status;
+            if(check_cell(game_map, i+1, j, status) && check_cell(game_map, i+2, j, status)) return status;
+            if(check_cell(game_map, i+1, j+1, status) && check_cell(game_map, i+2, j+2, status)) return status;
+        }
+    }
+    return 0;   
+}
+
+int check_full(int game_map){
+    for(int i = 0; i<map_size;i++){
+        for(int j = 0; j<map_size; j++){
+            if(maps[game_map].status == 0) return 0;
+        }
+    }
+    return 1;
+}
+
+// The main game happes here : 
+void StartGame(int game_map){
+    printf("/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\n");
+    while(1){
+        printf("----------------------------------------\n");
+        printf("first player turn\n");
+        struct Cell choic1 = users[maps[game_map].user1].f(maps[game_map]);
+        while(maps[game_map].map[choic1.x][choic1.y].status != 0){
+            printf("choose a valid cell\n");
+            choic1 = users[maps[game_map].user1].f(maps[game_map]);
+        }
+        maps[game_map].map[choic1.x][choic1.y].status = 1;
+        
+        // check
+        int status = check(game_map);
+        if(status){
+            maps[game_map].status = 1;
+            if(status == 1) {
+                score_board[maps[game_map].user1][maps[game_map].user2] += 1;
+                printf("%s won\n", users[maps[game_map].user1].username);
+            }
+            else {
+                score_board[maps[game_map].user2][maps[game_map].user1] += 1;
+                printf("%s won\n", users[maps[game_map].user2].username);
+            }
+            print_map(maps[game_map]);
+            break;
+        }
+        if(check_full(game_map)){
+            maps[game_map].status = 1;
+            printf("game finished, no one won\n");
+            break;
+        }
+
+
+        printf("second player turn\n");
+        struct Cell choic2 = users[maps[game_map].user2].f(maps[game_map]);
+        while(maps[game_map].map[choic2.x][choic2.y].status != 0){
+            printf("choose a valid cell\n");
+            choic2 = users[maps[game_map].user2].f(maps[game_map]);
+        }
+        maps[game_map].map[choic2.x][choic2.y].status = 2;
+        // check
+        status = check(game_map);
+        if(status){
+            maps[game_map].status = 1;
+            if(status == 1) {
+                score_board[maps[game_map].user1][maps[game_map].user2] += 1;
+                printf("%s won\n", users[maps[game_map].user1].username);
+            }
+            else {
+                score_board[maps[game_map].user2][maps[game_map].user1] += 1;
+                printf("%s won\n", users[maps[game_map].user2].username);
+            }
+            print_map(maps[game_map]);
+            break;
+        }
+        if(check_full(game_map)){
+            maps[game_map].status = 1;
+            printf("game finished, no one won\n");
+            break;
+        }
+
+        printf("do you want to continue?(yes/no)\n");
+        char ans[20]; scanf("%s", ans); 
+        if(ans[0] == 'n') break;
+    }
+}
 
 // users functions:
 //      first:
@@ -179,6 +274,14 @@ void MainMenu(){
 }
 
 void init(){
+    for(int t = 0; t<MX_maps; t++){
+        for(int i = 0; i<map_size; i++){
+            for(int j = 0; j<map_size;j++){
+                maps[t].map[i][j].x = i;
+                maps[t].map[i][j].y = j;
+            }
+        }
+    }
     strcpy(users[0].username, "Computer");
     users[0].f = &ComputerPlayer;
     user_count = 1;    
