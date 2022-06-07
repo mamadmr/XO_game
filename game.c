@@ -30,9 +30,11 @@ struct User{
 }users[MX_user];
 
 void StartGame(int game_map);                       // the Main game happens here after users pass the menus
+void LastGame();
 int check(int game_map);
 int check_cell(int game_map, int x, int y, int status);
 int check_full(int game_map);
+void ScoreBoard();
 void print_map(struct Map inp);                                      
 struct Cell ComputerPlayer(struct Map inp);         // computer choose a Cell to continue the game 
 struct Cell PlayerChoose(struct Map inp);           // ask user to choose a Cell to conitnue the game
@@ -51,8 +53,8 @@ int main(){
 }
 
 int check_cell(int game_map, int x, int y, int status){
-    if(x <= 0 || x >= map_size) return 0;
-    if(y <= 0 || y >= map_size) return 0;
+    if(x < 0 || x >= map_size) return 0;
+    if(y < 0 || y >= map_size) return 0;
     if(status == 0) return 0;
     if(maps[game_map].map[x][y].status == status) return 1;
     return 0;
@@ -66,6 +68,7 @@ int check(int game_map){
             if(check_cell(game_map, i, j+1, status) && check_cell(game_map, i, j+2, status)) return status;
             if(check_cell(game_map, i+1, j, status) && check_cell(game_map, i+2, j, status)) return status;
             if(check_cell(game_map, i+1, j+1, status) && check_cell(game_map, i+2, j+2, status)) return status;
+            if(check_cell(game_map, i-1, j+1, status) && check_cell(game_map, i-2, j+2, status)) return status;
         }
     }
     return 0;   
@@ -258,17 +261,46 @@ void NewPlayMenu(){
     }    
 }
 
+void ScoreBoard(){
+    printf("-----------------------------------------\n");
+    for(int i = 0; i<user_count; i++){
+        for(int j = i+1; j<user_count; j++){
+            printf("%s: %d %s: %d\n", users[i].username, score_board[i][j], users[j].username, score_board[j][i]);
+        }
+    }
+}
+
+void LastGame(){
+    for(int i = 0; i<map_count; i++){
+        if(maps[i].status != 0) continue;
+        printf("%d\n", i);
+        print_map(maps[i]);
+    }
+    printf("%d. back\n", map_count);
+    printf("Enter your choice: ");
+    int choice;
+    scanf("%d", &choice);
+    if(choice == map_count) return;
+    if(choice > map_count || choice < 0){
+        printf("Enter a valid input\n");
+        return;
+    }
+    StartGame(choice);
+}
 void MainMenu(){
     while(1)
     {
         printf("-----------------------------------------\n");
+        printf("0. score board\n");
         printf("1. new game\n");
         printf("2. last games\n");
         printf("3. exit\n");
         printf("Enter your choice: ");
         int choice;
         scanf("%d", &choice);
+        if(choice == 0) ScoreBoard();
         if(choice == 1) NewPlayMenu();
+        if(choice == 2) LastGame();
         if(choice == 3) break;
     }
 }
