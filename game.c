@@ -25,8 +25,8 @@ struct Map{
 
 // there are different users in the game, they can play with each other
 struct User{
-    char username[MX_name];
-    struct Cell (*f)(struct Map);
+    char username[MX_name];    // save the name of the player
+    struct Cell (*f)(struct Map); // save the stategy funtion of player
 }users[MX_user];
 
 void StartGame(int game_map);                       // the Main game happens here after users pass the menus
@@ -45,6 +45,7 @@ void TwoPlayer();
 void NewPlayMenu();
 void MainMenu();
 void init();
+int check_finish(int game_map);
 
 int main(){    
     init();   
@@ -52,19 +53,28 @@ int main(){
     return 0;
 }
 
+// check if the input cell (x, y) in the game_map has the special status or no
 int check_cell(int game_map, int x, int y, int status){
+    // check if the input cell exist
     if(x < 0 || x >= map_size) return 0;
     if(y < 0 || y >= map_size) return 0;
+    // check if the input cell empty
     if(status == 0) return 0;
+    // check if the input cell status is ok
     if(maps[game_map].map[x][y].status == status) return 1;
+    // if the status is different 
     return 0;
 }
 
+// check for a pattern that shows the winner 
 int check(int game_map){
     for(int i = 0; i<map_size; i++){
         for(int j = 0; j<map_size; j++){
+            // save the status of the cell
             int status = maps[game_map].map[i][j].status;
+            // check if the cell empty
             if(status == 0) continue;
+            // check if the cell chosen is a part of the three cells with same status
             if(check_cell(game_map, i, j+1, status) && check_cell(game_map, i, j+2, status)) return status;
             if(check_cell(game_map, i+1, j, status) && check_cell(game_map, i+2, j, status)) return status;
             if(check_cell(game_map, i+1, j+1, status) && check_cell(game_map, i+2, j+2, status)) return status;
@@ -74,6 +84,7 @@ int check(int game_map){
     return 0;   
 }
 
+// check all of the map if there is no empty cell 
 int check_full(int game_map){
     for(int i = 0; i<map_size;i++){
         for(int j = 0; j<map_size; j++){
@@ -83,68 +94,65 @@ int check_full(int game_map){
     return 1;
 }
 
+// a function to check if the game finished 
+int check_finish(int game_map){
+        int status = check(game_map);
+        if(status){
+            maps[game_map].status = 1;
+            if(status == 1){
+                score_board[maps[game_map].user1][maps[game_map].user2] += 1;
+                printf("%s won\n", users[maps[game_map].user1].username);
+            }
+            else {
+                score_board[maps[game_map].user2][maps[game_map].user1] += 1;
+                printf("%s won\n", users[maps[game_map].user2].username);
+            }
+            print_map(maps[game_map]);
+            return 1;
+        }
+        if(check_full(game_map)){
+            maps[game_map].status = 1;
+            printf("game finished, no one won\n");
+            return 1;
+        }
+        // if the map has to continue
+        return 0;
+        
+}
+
 // The main game happes here : 
 void StartGame(int game_map){
     printf("/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\n");
     while(1){
         printf("----------------------------------------\n");
         printf("first player turn\n");
-        struct Cell choic1 = users[maps[game_map].user1].f(maps[game_map]);
-        while(maps[game_map].map[choic1.x][choic1.y].status != 0){
+        struct Cell choic1;
+        // check until the player Enters a Cell that is not X or O 
+        do{
             printf("choose a valid cell\n");
             choic1 = users[maps[game_map].user1].f(maps[game_map]);
-        }
+        }while(maps[game_map].map[choic1.x][choic1.y].status != 0);
+
+        // put the status of the cell as the first player cells 
         maps[game_map].map[choic1.x][choic1.y].status = 1;
         
-        // check
-        int status = check(game_map);
-        if(status){
-            maps[game_map].status = 1;
-            if(status == 1) {
-                score_board[maps[game_map].user1][maps[game_map].user2] += 1;
-                printf("%s won\n", users[maps[game_map].user1].username);
-            }
-            else {
-                score_board[maps[game_map].user2][maps[game_map].user1] += 1;
-                printf("%s won\n", users[maps[game_map].user2].username);
-            }
-            print_map(maps[game_map]);
-            break;
-        }
-        if(check_full(game_map)){
-            maps[game_map].status = 1;
-            printf("game finished, no one won\n");
-            break;
-        }
-
+        // check if the game finished 
+        if(check_finish(game_map)) break;
 
         printf("second player turn\n");
-        struct Cell choic2 = users[maps[game_map].user2].f(maps[game_map]);
-        while(maps[game_map].map[choic2.x][choic2.y].status != 0){
+        struct Cell choic2;
+
+        // runs until getting an empty cell
+        do{
             printf("choose a valid cell\n");
             choic2 = users[maps[game_map].user2].f(maps[game_map]);
-        }
+        }while(maps[game_map].map[choic2.x][choic2.y].status != 0);
+
+        // put the status of the cell as the cells of the second player
         maps[game_map].map[choic2.x][choic2.y].status = 2;
-        // check
-        status = check(game_map);
-        if(status){
-            maps[game_map].status = 1;
-            if(status == 1) {
-                score_board[maps[game_map].user1][maps[game_map].user2] += 1;
-                printf("%s won\n", users[maps[game_map].user1].username);
-            }
-            else {
-                score_board[maps[game_map].user2][maps[game_map].user1] += 1;
-                printf("%s won\n", users[maps[game_map].user2].username);
-            }
-            print_map(maps[game_map]);
-            break;
-        }
-        if(check_full(game_map)){
-            maps[game_map].status = 1;
-            printf("game finished, no one won\n");
-            break;
-        }
+        
+        // check if the game finished
+        if(check_finish(game_map)) break;
 
         printf("do you want to continue?(yes/no)\n");
         char ans[20]; scanf("%s", ans); 
@@ -152,8 +160,9 @@ void StartGame(int game_map){
     }
 }
 
-// users functions:
-//      first:
+// users strategy functions functions:
+//      first(Computer strategy function):
+//          choose the first empty cell
 struct Cell ComputerPlayer(struct Map inp){
     for(int i = 0; i<map_size; i++)
         for(int j = 0; j<map_size; j++)
@@ -162,6 +171,7 @@ struct Cell ComputerPlayer(struct Map inp){
 
 //      second:
 struct Cell PlayerChoose(struct Map inp){
+    // runs until user Enters a valid coordinate
     while(1){
         print_map(inp);
         int x, y;
@@ -213,7 +223,6 @@ int ChoosePlayer(){
     }
 }
 
-
 // choose the only player for playing against 
 void OnePlayer(){
     printf("-----------------------------------------\n");
@@ -224,7 +233,6 @@ void OnePlayer(){
     StartGame(map_count);
     map_count++;
 }
-
 
 // choose two players to play against each other 
 void TwoPlayer(){
@@ -261,19 +269,24 @@ void NewPlayMenu(){
     }    
 }
 
+//show the score board for users which played with each other
 void ScoreBoard(){
+    // print score board each username against the other one
     printf("-----------------------------------------\n");
     for(int i = 0; i<user_count; i++){
         for(int j = i+1; j<user_count; j++){
-            printf("%s: %d %s: %d\n", users[i].username, score_board[i][j], users[j].username, score_board[j][i]);
+            // chech if they had any game against each other
+            if(score_board[i][j] + score_board[j][i])
+                printf("%s: %d %s: %d\n", users[i].username, score_board[i][j], users[j].username, score_board[j][i]);
         }
     }
 }
 
+// Enter to an  old game
 void LastGame(){
     for(int i = 0; i<map_count; i++){
         if(maps[i].status != 0) continue;
-        printf("%d\n", i);
+        printf("map number: %d\n", i);
         print_map(maps[i]);
     }
     printf("%d. back\n", map_count);
@@ -288,6 +301,7 @@ void LastGame(){
     StartGame(choice);
 }
 void MainMenu(){
+    // first menu -> last menu -> exit from 
     while(1)
     {
         printf("-----------------------------------------\n");
@@ -305,16 +319,20 @@ void MainMenu(){
     }
 }
 
+// do some preprocesses before game start
 void init(){
-    for(int t = 0; t<MX_maps; t++){
-        for(int i = 0; i<map_size; i++){
-            for(int j = 0; j<map_size;j++){
-                maps[t].map[i][j].x = i;
+    // initialize the x, y for each cell in maps
+    for(int t = 0; t<MX_maps; t++){ // thers is MX_maps maps at all
+        for(int i = 0; i<map_size; i++){ // each map has map_size number of rows
+            for(int j = 0; j<map_size;j++){ // each map has map_size number of columns
+                // initialize the cell of t-th map with a (i, j) coordinate 
+                maps[t].map[i][j].x = i;  
                 maps[t].map[i][j].y = j;
             }
         }
     }
-    strcpy(users[0].username, "Computer");
-    users[0].f = &ComputerPlayer;
-    user_count = 1;    
+    // make a user as computer to play in oneplayer mod    
+    strcpy(users[0].username, "Computer"); // give a "Computer" username to this user
+    users[0].f = &ComputerPlayer; // give a startegy function for computer
+    user_count = 1;  // now we have a user("Computer") so the user count is 1 
 }
